@@ -18,7 +18,7 @@
     $FileInfo: pyuntar.py - Last Update: 1/4/2018 Ver. 4.7.0 RC 1 - Author: cooldude2k $
 '''
 
-import os, re;
+import os, sys, re;
 import logging as log;
 
 if __name__ == '__main__':
@@ -49,17 +49,23 @@ if __name__ == '__main__':
  getargs = argparser.parse_args();
 
 def strip_text_from_file(fhandle, read):
- temp_text = str(fhandle.read(read));
+ if(sys.version[0]=="2"):
+  temp_text = str(fhandle.read(read));
+ if(sys.version[0]>="3"):
+  temp_text = str(fhandle.read(read).decode('ascii'));
  temp_text = temp_text.strip();
  temp_text = ''.join(c for c in temp_text if ord(c) >= 32);
  return str(temp_text);
 
 def no_strip_text_from_file(fhandle, read):
- temp_text = str(fhandle.read(read));
- return str(temp_text);
+ temp_text = fhandle.read(read);
+ return temp_text;
 
 def strip_number_from_file(fhandle, read, base=8):
- temp_num = str(fhandle.read(read));
+ if(sys.version[0]=="2"):
+  temp_num = str(fhandle.read(read));
+ if(sys.version[0]>="3"):
+  temp_num = str(fhandle.read(read).decode('ascii'));
  temp_num = temp_num.strip();
  temp_num = ''.join(c for c in temp_num if ord(c) >= 32);
  return int(temp_num, base);
