@@ -15,7 +15,7 @@
     Copyright 2018 Kazuki Przyborowski - https://github.com/KazukiPrzyborowski
     PyUnTar based on iUnTar ver. 4.7 by Kazuki Przyborowski & Josep Sanz Campderros
 
-    $FileInfo: pyuntar.py - Last Update: 1/4/2018 Ver. 4.7.0 RC 1 - Author: cooldude2k $
+    $FileInfo: pyuntar.py - Last Update: 1/4/2018 Ver. 4.8.0 RC 1 - Author: cooldude2k $
 '''
 
 import os, sys, re;
@@ -27,7 +27,7 @@ if __name__ == '__main__':
 __program_name__ = "PyUnTAR";
 __project__ = __program_name__;
 __project_url__ = "https://github.com/GameMaker2k/PyUnTAR";
-__version_info__ = (4, 7, 0, "RC 1", 1);
+__version_info__ = (4, 8, 0, "RC 1", 1);
 __version_date_info__ = (2018, 1, 4, "RC 1", 1);
 __version_date__ = str(__version_date_info__[0])+"."+str(__version_date_info__[1]).zfill(2)+"."+str(__version_date_info__[2]).zfill(2);
 if(__version_info__[4]!=None):
@@ -71,6 +71,12 @@ def strip_number_from_file(fhandle, read, base=8):
  if(len(str(temp_num))==0):
   temp_num = "0";
  return int(temp_num, base);
+
+def check_if_in_is_empty(intval):
+ temp_num = intval;
+ if(len(str(intval))==0):
+  temp_num = "0";
+ return temp_num;
 
 '''
 // Python PyUnTAR based on PHP iUnTAR Version 4.7
@@ -141,7 +147,7 @@ def untar(tarfile, outdir="./", chmod=None, extract=True, lsonly=False, verbose=
    FileType = strip_text_from_file(thandle, 12);
    thandle.seek(100, 1);
    thandle.seek(255, 1); 
-   if(FileType=="0" or FileType=="7"):
+   if(FileType=="0" or FileType=="7" or FileType=="g"):
     thandle.seek(FileSize, 1);
   if(findfile is None or FileType=="L" or re.search("/"+qfindfile+"/", FileName)):
    FileMode = strip_text_from_file(thandle, 8);
@@ -194,14 +200,14 @@ def untar(tarfile, outdir="./", chmod=None, extract=True, lsonly=False, verbose=
      DeviceMinor = strip_number_from_file(thandle, 8, 8);
      FilenamePrefix = strip_text_from_file(thandle, 155);
      thandle.seek(12, 1);
-  if((verbose is True and extract is True) or (verbose is False and lsonly is True)):
+  if(((verbose is True and extract is True) or (verbose is False and lsonly is True)) and Checksum!=0):
    log.info(FileName);
-  if(verbose is True and lsonly is True):
+  if(verbose is True and lsonly is True and Checksum!=0):
    permissions = { 'access': { '0': ('---'), '1': ('--x'), '2': ('-w-'), '3': ('-wx'), '4': ('r--'), '5': ('r-x'), '6': ('rw-'), '7': ('rwx') }, 'roles': { 0: 'owner', 1: 'group', 2: 'other' } };
    permissionstr = "";
    for fmodval in str(FileMode[-3:]):
     permissionstr =  permissions['access'][fmodval] + permissionstr;
-   if(FileType=="0" or FileType=="7"):
+   if(FileType=="0" or FileType=="7" or FileType=="g"):
     permissionstr = "-"+permissionstr;
    if(FileType=="1"):
     permissionstr = "l"+permissionstr;
@@ -209,9 +215,9 @@ def untar(tarfile, outdir="./", chmod=None, extract=True, lsonly=False, verbose=
     permissionstr = "s"+permissionstr;
    if(FileType=="5"):
     permissionstr = "d"+permissionstr;
-   log.info(permissionstr+" "+str(int(OwnerID))+"/"+str(int(GroupID))+" "+str(FileSize).rjust(15)+" "+datetime.datetime.utcfromtimestamp(int(LastEdit)).strftime('%Y-%m-%d %H:%M')+" "+FileName);
-  if(findfile is None or  re.search("/"+qfindfile+"/", FileName)):
-   if(FileType=="0" or FileType=="7"):
+   log.info(permissionstr+" "+str(check_if_in_is_empty(OwnerID))+"/"+str(check_if_in_is_empty(GroupID))+" "+str(FileSize).rjust(15)+" "+datetime.datetime.utcfromtimestamp(check_if_in_is_empty(LastEdit)).strftime('%Y-%m-%d %H:%M')+" "+FileName);
+  if((findfile is None or  re.search("/"+qfindfile+"/", FileName)) and Checksum!=0):
+   if(FileType=="0" or FileType=="7" or FileType=="g"):
     if(lsonly is True):
      thandle.seek(FileSize, 1);
     if(lsonly is False):
@@ -225,7 +231,7 @@ def untar(tarfile, outdir="./", chmod=None, extract=True, lsonly=False, verbose=
     FileContent = None;
    if(FileType=="5"):
     FileContent = None;
-   if(FileType=="0" or FileType=="7"):
+   if(FileType=="0" or FileType=="7" or FileType=="g"):
     if(extract is True):
      subhandle = open(FileName, "wb+");
      subhandle.write(FileContent);
@@ -240,7 +246,7 @@ def untar(tarfile, outdir="./", chmod=None, extract=True, lsonly=False, verbose=
    if(FileType=="5"):
     if(extract is True):
      os.mkdir(FileName, FileCHMOD);
-   if(FileType=="0" or FileType=="1" or FileType=="2" or FileType=="5" or FileType=="7"):
+   if(FileType=="0" or FileType=="1" or FileType=="2" or FileType=="5" or FileType=="7" or FileType=="g"):
     if(extract is False):
      if(lsonly is True):
       if(TarType=="tar"):
@@ -252,15 +258,15 @@ def untar(tarfile, outdir="./", chmod=None, extract=True, lsonly=False, verbose=
        FileArray.update({i: {'FileName': FileName, 'FileMode': FileMode, 'OwnerID': OwnerID, 'GroupID': GroupID, 'FileSize': FileSize, 'LastEdit': LastEdit, 'Checksum': Checksum, 'FileType': FileType, 'LinkedFile': LinkedFile, 'FileContent': FileContent}});
       if(TarType=="ustar"):
        FileArray.update({i: {'FileName': FileName, 'FileMode': FileMode, 'OwnerID': OwnerID, 'GroupID': GroupID, 'FileSize': FileSize, 'LastEdit': LastEdit, 'Checksum': Checksum, 'FileType': FileType, 'LinkedFile': LinkedFile, 'UStar': UStar, 'UStarVer': UStarVer, 'OwnerName': OwnerName, 'GroupName': GroupName, 'DeviceMajor': DeviceMajor, 'DeviceMinor': DeviceMinor, 'FilenamePrefix': FilenamePrefix, 'FileContent': FileContent}});
-  if(extract is False and findfile is None and (i in FileArray and 'FileName' in FileArray[i])):
+  if(extract is False and findfile is None and (i in FileArray and 'FileName' in FileArray[i]) and Checksum!=0):
    i += 1;
   if(extract is False):
-   if(findfile is not None and re.search("/"+qfindfile+"/", FileName) and (i in FileArray and 'FileName' in FileArray[i])):
+   if(findfile is not None and re.search("/"+qfindfile+"/", FileName) and (i in FileArray and 'FileName' in FileArray[i]) and Checksum!=0):
     i += 1;
   if(extract is True):
-   if(findfile is not None and re.search("/"+qfindfile+"/", FileName)):
+   if(findfile is not None and re.search("/"+qfindfile+"/", FileName) and Checksum!=0):
     i += 1;
-  if((FileType=="0" or FileType=="7") and FileSize>0):
+  if((FileType=="0" or FileType=="7" or FileType=="g") and FileSize>0):
    CheckSize = 512;
    while (CheckSize<FileSize):
     if(CheckSize<FileSize):
