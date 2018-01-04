@@ -297,4 +297,4 @@ if __name__ == '__main__':
  if(getargs.list is False and getargs.extract is False):
   should_extract = True;
   should_list = False;
- untar("./iDB.tar", extract=False, lsonly=False, verbose=getargs.verbose);
+ untar(getargs.tarfile, extract=should_extract, lsonly=should_list, verbose=getargs.verbose);
