@@ -68,6 +68,8 @@ def strip_number_from_file(fhandle, read, base=8):
   temp_num = str(fhandle.read(read).decode('ascii'));
  temp_num = temp_num.strip();
  temp_num = ''.join(c for c in temp_num if ord(c) >= 32);
+ if(len(str(temp_num))==0):
+  temp_num = "0";
  return int(temp_num, base);
 
 '''
@@ -81,6 +83,7 @@ def untar(tarfile, outdir="./", chmod=None, extract=True, lsonly=False, verbose=
   log.basicConfig(format="%(message)s", level=log.DEBUG);
  TarSize = os.path.getsize(tarfile);
  TarSizeEnd = TarSize - 1024;
+ TarType = "tar";
  if(extract!=True and extract!=False):
   extract = False;
  if(lsonly!=True and lsonly!=False):
@@ -100,6 +103,11 @@ def untar(tarfile, outdir="./", chmod=None, extract=True, lsonly=False, verbose=
   qfindfile = re.escape(findfile);
  if findfile is None:
   qfindfile = None;
+ thandle.seek(257, 1);
+ TarType = strip_text_from_file(thandle, 6);
+ if(TarType!="ustar"):
+  TarType = "tar";
+ thandle.seek(-263, 1);
  while(thandle.tell()<TarSizeEnd):
   FileName = None;
   FileMode = None;
@@ -111,6 +119,14 @@ def untar(tarfile, outdir="./", chmod=None, extract=True, lsonly=False, verbose=
   FileType = None;
   LinkedFile = None;
   FileContent = None;
+  if(TarType=="ustar"):
+   UStar = None;
+   UStarVer = None;
+   OwnerName = None;
+   GroupName = None;
+   DeviceMajor = None;
+   DeviceMinor = None;
+   FilenamePrefix = None;
   FileName = str(outdir)+strip_text_from_file(thandle, 100);
   thandle.seek(56, 1);
   FileType = strip_text_from_file(thandle, 1);
@@ -140,7 +156,17 @@ def untar(tarfile, outdir="./", chmod=None, extract=True, lsonly=False, verbose=
    Checksum = strip_number_from_file(thandle, 8, 8);
    FileType = strip_text_from_file(thandle, 1);
    LinkedFile = strip_text_from_file(thandle, 100);
-   thandle.seek(255, 1);
+   if(TarType=="tar"):
+    thandle.seek(255, 1);
+   if(TarType=="ustar"):
+    UStar = strip_text_from_file(thandle, 6);
+    UStarVer = strip_text_from_file(thandle, 2);
+    OwnerName = strip_text_from_file(thandle, 32);
+    GroupName = strip_text_from_file(thandle, 32);
+    DeviceMajor = strip_number_from_file(thandle, 8, 8);
+    DeviceMinor = strip_number_from_file(thandle, 8, 8);
+    FilenamePrefix = strip_text_from_file(thandle, 155);
+    thandle.seek(12, 1);
    if(FileType=="L" and FileSize>0):
     FileName = strip_text_from_file(thandle, FileSize);
     thandle.seek(512-FileSize, 1);
@@ -157,7 +183,17 @@ def untar(tarfile, outdir="./", chmod=None, extract=True, lsonly=False, verbose=
     Checksum = strip_number_from_file(thandle, 8, 8);
     FileType = strip_text_from_file(thandle, 1);
     LinkedFile = strip_text_from_file(thandle, 100);
-    thandle.seek(255, 1);
+    if(TarType=="tar"):
+     thandle.seek(255, 1);
+    if(TarType=="ustar"):
+     UStar = strip_text_from_file(thandle, 6);
+     UStarVer = strip_text_from_file(thandle, 2);
+     OwnerName = strip_text_from_file(thandle, 32);
+     GroupName = strip_text_from_file(thandle, 32);
+     DeviceMajor = strip_number_from_file(thandle, 8, 8);
+     DeviceMinor = strip_number_from_file(thandle, 8, 8);
+     FilenamePrefix = strip_text_from_file(thandle, 155);
+     thandle.seek(12, 1);
   if((verbose is True and extract is True) or (verbose is False and lsonly is True)):
    log.info(FileName);
   if(verbose is True and lsonly is True):
@@ -207,9 +243,15 @@ def untar(tarfile, outdir="./", chmod=None, extract=True, lsonly=False, verbose=
    if(FileType=="0" or FileType=="1" or FileType=="2" or FileType=="5" or FileType=="7"):
     if(extract is False):
      if(lsonly is True):
-      FileArray.update({i: {'FileName': FileName, 'FileMode': FileMode, 'OwnerID': OwnerID, 'GroupID': GroupID, 'FileSize': FileSize, 'LastEdit': LastEdit, 'Checksum': Checksum, 'FileType': FileType, 'LinkedFile': LinkedFile}});
+      if(TarType=="tar"):
+       FileArray.update({i: {'FileName': FileName, 'FileMode': FileMode, 'OwnerID': OwnerID, 'GroupID': GroupID, 'FileSize': FileSize, 'LastEdit': LastEdit, 'Checksum': Checksum, 'FileType': FileType, 'LinkedFile': LinkedFile}});
+      if(TarType=="ustar"):
+       FileArray.update({i: {'FileName': FileName, 'FileMode': FileMode, 'OwnerID': OwnerID, 'GroupID': GroupID, 'FileSize': FileSize, 'LastEdit': LastEdit, 'Checksum': Checksum, 'FileType': FileType, 'LinkedFile': LinkedFile, 'UStar': UStar, 'UStarVer': UStarVer, 'OwnerName': OwnerName, 'GroupName': GroupName, 'DeviceMajor': DeviceMajor, 'DeviceMinor': DeviceMinor, 'FilenamePrefix': FilenamePrefix}});
      if(lsonly is False):
-      FileArray.update({i: {'FileName': FileName, 'FileMode': FileMode, 'OwnerID': OwnerID, 'GroupID': GroupID, 'FileSize': FileSize, 'LastEdit': LastEdit, 'Checksum': Checksum, 'FileType': FileType, 'LinkedFile': LinkedFile, 'FileContent': FileContent}});
+      if(TarType=="tar"):
+       FileArray.update({i: {'FileName': FileName, 'FileMode': FileMode, 'OwnerID': OwnerID, 'GroupID': GroupID, 'FileSize': FileSize, 'LastEdit': LastEdit, 'Checksum': Checksum, 'FileType': FileType, 'LinkedFile': LinkedFile, 'FileContent': FileContent}});
+      if(TarType=="ustar"):
+       FileArray.update({i: {'FileName': FileName, 'FileMode': FileMode, 'OwnerID': OwnerID, 'GroupID': GroupID, 'FileSize': FileSize, 'LastEdit': LastEdit, 'Checksum': Checksum, 'FileType': FileType, 'LinkedFile': LinkedFile, 'UStar': UStar, 'UStarVer': UStarVer, 'OwnerName': OwnerName, 'GroupName': GroupName, 'DeviceMajor': DeviceMajor, 'DeviceMinor': DeviceMinor, 'FilenamePrefix': FilenamePrefix, 'FileContent': FileContent}});
   if(extract is False and findfile is None and (i in FileArray and 'FileName' in FileArray[i])):
    i += 1;
   if(extract is False):
@@ -255,4 +297,4 @@ if __name__ == '__main__':
  if(getargs.list is False and getargs.extract is False):
   should_extract = True;
   should_list = False;
- untar(getargs.tarfile, extract=should_extract, lsonly=should_list, verbose=getargs.verbose);
+ untar("./iDB.tar", extract=False, lsonly=False, verbose=getargs.verbose);
