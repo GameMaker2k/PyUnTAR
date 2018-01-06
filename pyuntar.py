@@ -115,7 +115,7 @@ def untar(tarfile, outdir="./", chmod=None, extract=True, lsonly=False, compress
    compression = None;
  if(extract is True):
   if(outdir!="" and not os.path.exists(outdir)):
-   mkdir(outdir, int("0777", 8));
+   os.mkdir(outdir, int("0777", 8));
  if(compression==None):
   thandle = open(tarfile, "rb");
  if(compression=="gzip"):
