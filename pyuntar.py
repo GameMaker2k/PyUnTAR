@@ -15,7 +15,7 @@
     Copyright 2018 Kazuki Przyborowski - https://github.com/KazukiPrzyborowski
     PyUnTar based on iUnTar ver. 4.7 by Kazuki Przyborowski & Josep Sanz Campderros
 
-    $FileInfo: pyuntar.py - Last Update: 1/9/2018 Ver. 4.9.0 RC 1 - Author: cooldude2k $
+    $FileInfo: pyuntar.py - Last Update: 1/9/2018 Ver. 4.10.0 RC 1 - Author: cooldude2k $
 '''
 
 import os, sys, re;
@@ -27,7 +27,7 @@ if __name__ == '__main__':
 __program_name__ = "PyUnTAR";
 __project__ = __program_name__;
 __project_url__ = "https://github.com/GameMaker2k/PyUnTAR";
-__version_info__ = (4, 9, 0, "RC 1", 1);
+__version_info__ = (4, 10, 0, "RC 1", 1);
 __version_date_info__ = (2018, 1, 6, "RC 1", 1);
 __version_date__ = str(__version_date_info__[0])+"."+str(__version_date_info__[1]).zfill(2)+"."+str(__version_date_info__[2]).zfill(2);
 if(__version_info__[4]!=None):
@@ -115,7 +115,7 @@ def untar(tarfile, outdir="./", chmod=None, extract=True, lsonly=False, compress
    compression = None;
  if(extract is True):
   if(outdir!="" and not os.path.exists(outdir)):
-   os.mkdir(outdir, int("0777", 8));
+   os.makedirs(outdir, int("0777", 8));
  if(compression==None):
   thandle = open(tarfile, "rb");
  if(compression=="gzip"):
@@ -271,7 +271,7 @@ def untar(tarfile, outdir="./", chmod=None, extract=True, lsonly=False, compress
      os.symlink(LinkedFile, FileName);
    if(FileType=="5"):
     if(extract is True):
-     os.mkdir(FileName, FileCHMOD);
+     os.makedirs(FileName, FileCHMOD);
    if(FileType=="0" or FileType=="1" or FileType=="2" or FileType=="5" or FileType=="7" or FileType=="g"):
     if(extract is False):
      if(lsonly is True):
