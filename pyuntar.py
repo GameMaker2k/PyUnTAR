@@ -15,7 +15,7 @@
     Copyright 2018 Kazuki Przyborowski - https://github.com/KazukiPrzyborowski
     PyUnTar based on iUnTar ver. 4.7 by Kazuki Przyborowski & Josep Sanz Campderros
 
-    $FileInfo: pyuntar.py - Last Update: 1/4/2018 Ver. 4.8.0 RC 1 - Author: cooldude2k $
+    $FileInfo: pyuntar.py - Last Update: 1/9/2018 Ver. 4.9.0 RC 1 - Author: cooldude2k $
 '''
 
 import os, sys, re;
@@ -27,8 +27,8 @@ if __name__ == '__main__':
 __program_name__ = "PyUnTAR";
 __project__ = __program_name__;
 __project_url__ = "https://github.com/GameMaker2k/PyUnTAR";
-__version_info__ = (4, 8, 0, "RC 1", 1);
-__version_date_info__ = (2018, 1, 4, "RC 1", 1);
+__version_info__ = (4, 9, 0, "RC 1", 1);
+__version_date_info__ = (2018, 1, 6, "RC 1", 1);
 __version_date__ = str(__version_date_info__[0])+"."+str(__version_date_info__[1]).zfill(2)+"."+str(__version_date_info__[2]).zfill(2);
 if(__version_info__[4]!=None):
  __version_date_plusrc__ = __version_date__+"-"+str(__version_date_info__[4]);
@@ -46,6 +46,9 @@ if __name__ == '__main__':
  argparser.add_argument("-v", "--verbose", action="store_true", help="print various debugging information");
  argparser.add_argument("-t", "--list", action="store_true", help="list files only");
  argparser.add_argument("-x", "--extract", action="store_true", help="extract files only");
+ argparser.add_argument("-d", "--decompress", default=None, help="decompress file with gzip or bzip2");
+ argparser.add_argument("-o", "--outputdir", default="./", help="output tar file to dir");
+ argparser.add_argument("-c", "--chmod", default=None, help="set chmod vaule for files");
  getargs = argparser.parse_args();
 
 def strip_text_from_file(fhandle, read):
@@ -84,7 +87,7 @@ def check_if_in_is_empty(intval):
 // Kazuki Przyborowski (http://ja.gamemaker2k.org/)
 // Josep Sanz Campderros (http://saltos.net/)
 '''
-def untar(tarfile, outdir="./", chmod=None, extract=True, lsonly=False, verbose=False, findfile=None):
+def untar(tarfile, outdir="./", chmod=None, extract=True, lsonly=False, compression=None, verbose=False, findfile=None):
  if((verbose is True and extract is True) or (lsonly is True)):
   log.basicConfig(format="%(message)s", level=log.DEBUG);
  TarSize = os.path.getsize(tarfile);
@@ -96,10 +99,29 @@ def untar(tarfile, outdir="./", chmod=None, extract=True, lsonly=False, verbose=
   lsonly = False;
  if(extract is True):
   lsonly = False;
+ if(compression=="bzip"):
+  compression = "bzip2";
+ if(compression is not None and compression!="gzip" and compression!="bzip2"):
+  compression = None;
+ if(compression=="gzip"):
+  try:
+   import gzip;
+  except ImportError:
+   compression = None;
+ if(compression=="bzip2"):
+  try:
+   import bz2;
+  except ImportError:
+   compression = None;
  if(extract is True):
   if(outdir!="" and not os.path.exists(outdir)):
    mkdir(outdir, int("0777", 8));
- thandle = open(tarfile, "rb");
+ if(compression==None):
+  thandle = open(tarfile, "rb");
+ if(compression=="gzip"):
+  thandle = gzip.open(tarfile, "rb");
+ if(compression=="bzip2"):
+  thandle = bz2.BZ2File(tarfile, "rb");
  i = 0;
  if(extract is False):
   FileArray = {};
@@ -282,11 +304,11 @@ def untar(tarfile, outdir="./", chmod=None, extract=True, lsonly=False, verbose=
 '''
 // Backwards compatible funtion for PHP iUnTAR
 '''
-def iuntar(tarfile, outdir="./", chmod=None, extract=True, lsonly=False, verbose=False, findfile=None):
- return untar(tarfile, outdir, chmod, extract, lsonly, verbose, findfile);
+def iuntar(tarfile, outdir="./", chmod=None, extract=True, lsonly=False, compression=None, verbose=False, findfile=None):
+ return untar(tarfile, outdir, chmod, extract, lsonly, compression, verbose, findfile);
 
-def pyuntar(tarfile, outdir="./", chmod=None, extract=True, lsonly=False, verbose=False, findfile=None):
- return untar(tarfile, outdir, chmod, extract, lsonly, verbose, findfile);
+def pyuntar(tarfile, outdir="./", chmod=None, extract=True, lsonly=False, compression=None, verbose=False, findfile=None):
+ return untar(tarfile, outdir, chmod, extract, lsonly, compression, verbose, findfile);
 
 if __name__ == '__main__':
  should_extract = True;
@@ -303,4 +325,4 @@ if __name__ == '__main__':
  if(getargs.list is False and getargs.extract is False):
   should_extract = True;
   should_list = False;
- untar(getargs.tarfile, extract=should_extract, lsonly=should_list, verbose=getargs.verbose);
+ untar(tarfile=getargs.tarfile, outdir=getargs.outputdir, chmod=getargs.chmod, extract=should_extract, lsonly=should_list, compression=getargs.decompress, verbose=getargs.verbose, findfile=None);
