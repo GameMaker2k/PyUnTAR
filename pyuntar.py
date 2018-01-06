@@ -122,6 +122,10 @@ def untar(tarfile, outdir="./", chmod=None, extract=True, lsonly=False, compress
   thandle = gzip.open(tarfile, "rb");
  if(compression=="bzip2"):
   thandle = bz2.BZ2File(tarfile, "rb");
+ thandle.seek(0, 2);
+ TarSize = thandle.tell();
+ TarSizeEnd = TarSize;
+ thandle.seek(0, 0);
  i = 0;
  if(extract is False):
   FileArray = {};
