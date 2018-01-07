@@ -179,6 +179,8 @@ def untar(tarfile, outdir="./", chmod=None, extract=True, lsonly=False, compress
  while(thandle.tell()<TarSizeEnd):
   FileName = None;
   RealFileName = None;
+  FileDirectory = None;
+  RealFileDirectory = None;
   FileMode = None;
   OwnerID = None;
   GroupID = None;
@@ -200,8 +202,10 @@ def untar(tarfile, outdir="./", chmod=None, extract=True, lsonly=False, compress
   FileName = str(outdir)+RealFileName;
   thandle.seek(56, 1);
   FileType = strip_text_from_file(thandle, 1);
+  FileDirectory = os.path.dirname(FileName);
+  RealFileDirectory = os.path.dirname(RealFileName);
   thandle.seek(-57, 1);
-  if(findfile is not None and FileType!="L" and re.search("/"+qfindfile+"/", FileName)):
+  if(findfile is not None and FileType!="L" and re.search("/"+qfindfile+"/", RealFileName)):
    thandle.seek(8, 1);
    thandle.seek(8, 1);
    thandle.seek(8, 1);
@@ -213,7 +217,7 @@ def untar(tarfile, outdir="./", chmod=None, extract=True, lsonly=False, compress
    thandle.seek(255, 1); 
    if(FileType=="0" or FileType=="7" or FileType=="g"):
     thandle.seek(FileSize, 1);
-  if(findfile is None or FileType=="L" or re.search("/"+qfindfile+"/", FileName)):
+  if(findfile is None or FileType=="L" or re.search("/"+qfindfile+"/", RealFileName)):
    FileMode = strip_text_from_file(thandle, 8);
    if(chmod is None):
     FileCHMOD = int("0"+FileMode[-3:], 8);
@@ -239,7 +243,9 @@ def untar(tarfile, outdir="./", chmod=None, extract=True, lsonly=False, compress
     thandle.seek(12, 1);
    if(FileType=="L" and FileSize>0):
     FileName = strip_text_from_file(thandle, FileSize);
-    RealFileName = strip_text_from_file(thandle, RealFileSize);
+    RealFileName = FileName;
+    FileDirectory = os.path.dirname(FileName);
+    RealFileDirectory = os.path.dirname(RealFileName);
     thandle.seek(512-FileSize, 1);
     thandle.seek(100, 1);
     FileMode = strip_text_from_file(thandle, 8);
@@ -266,7 +272,7 @@ def untar(tarfile, outdir="./", chmod=None, extract=True, lsonly=False, compress
      FilenamePrefix = strip_text_from_file(thandle, 155);
      thandle.seek(12, 1);
   if(((verbose is True and extract is True) or (verbose is False and lsonly is True)) and Checksum!=0):
-   log.info(FileName);
+   log.info(RealFileName);
   if(verbose is True and lsonly is True and Checksum!=0):
    permissions = { 'access': { '0': ('---'), '1': ('--x'), '2': ('-w-'), '3': ('-wx'), '4': ('r--'), '5': ('r-x'), '6': ('rw-'), '7': ('rwx') }, 'roles': { 0: 'owner', 1: 'group', 2: 'other' } };
    permissionstr = "";
@@ -280,8 +286,8 @@ def untar(tarfile, outdir="./", chmod=None, extract=True, lsonly=False, compress
     permissionstr = "s"+permissionstr;
    if(FileType=="5"):
     permissionstr = "d"+permissionstr;
-   log.info(permissionstr+" "+str(check_if_int_is_empty(OwnerID))+"/"+str(check_if_int_is_empty(GroupID))+" "+str(FileSize).rjust(15)+" "+datetime.datetime.utcfromtimestamp(check_if_int_is_empty(LastEdit)).strftime('%Y-%m-%d %H:%M')+" "+FileName);
-  if((findfile is None or  re.search("/"+qfindfile+"/", FileName)) and Checksum!=0):
+   log.info(permissionstr+" "+str(check_if_int_is_empty(OwnerID))+"/"+str(check_if_int_is_empty(GroupID))+" "+str(FileSize).rjust(15)+" "+datetime.datetime.utcfromtimestamp(check_if_int_is_empty(LastEdit)).strftime('%Y-%m-%d %H:%M')+" "+RealFileName);
+  if((findfile is None or  re.search("/"+qfindfile+"/", RealFileName)) and Checksum!=0):
    if(FileType=="0" or FileType=="7" or FileType=="g"):
     if(lsonly is True):
      thandle.seek(FileSize, 1);
@@ -315,21 +321,21 @@ def untar(tarfile, outdir="./", chmod=None, extract=True, lsonly=False, compress
     if(extract is False):
      if(lsonly is True):
       if(TarType=="tar"):
-       FileArray.update({i: {'FileName': FileName, 'RealFileName': RealFileName, 'FileMode': FileMode, 'FileCHMOD': FileCHMOD, 'OwnerID': OwnerID, 'GroupID': GroupID, 'FileSize': FileSize, 'LastEdit': LastEdit, 'Checksum': Checksum, 'FileType': FileType, 'LinkedFile': LinkedFile}});
+       FileArray.update({i: {'FileName': FileName, 'RealFileName': RealFileName, 'FileDirectory': FileDirectory, 'RealFileDirectory': RealFileDirectory, 'FileMode': FileMode, 'FileCHMOD': FileCHMOD, 'OwnerID': OwnerID, 'GroupID': GroupID, 'FileSize': FileSize, 'LastEdit': LastEdit, 'Checksum': Checksum, 'FileType': FileType, 'LinkedFile': LinkedFile}});
       if(TarType=="ustar"):
-       FileArray.update({i: {'FileName': FileName, 'RealFileName': RealFileName, 'FileMode': FileMode, 'FileCHMOD': FileCHMOD, 'OwnerID': OwnerID, 'GroupID': GroupID, 'FileSize': FileSize, 'LastEdit': LastEdit, 'Checksum': Checksum, 'FileType': FileType, 'LinkedFile': LinkedFile, 'UStar': UStar, 'UStarVer': UStarVer, 'OwnerName': OwnerName, 'GroupName': GroupName, 'DeviceMajor': DeviceMajor, 'DeviceMinor': DeviceMinor, 'FilenamePrefix': FilenamePrefix}});
+       FileArray.update({i: {'FileName': FileName, 'RealFileName': RealFileName, 'FileDirectory': FileDirectory, 'RealFileDirectory': RealFileDirectory, 'FileMode': FileMode, 'FileCHMOD': FileCHMOD, 'OwnerID': OwnerID, 'GroupID': GroupID, 'FileSize': FileSize, 'LastEdit': LastEdit, 'Checksum': Checksum, 'FileType': FileType, 'LinkedFile': LinkedFile, 'UStar': UStar, 'UStarVer': UStarVer, 'OwnerName': OwnerName, 'GroupName': GroupName, 'DeviceMajor': DeviceMajor, 'DeviceMinor': DeviceMinor, 'FilenamePrefix': FilenamePrefix}});
      if(lsonly is False):
       if(TarType=="tar"):
-       FileArray.update({i: {'FileName': FileName, 'RealFileName': RealFileName, 'FileMode': FileMode, 'FileCHMOD': FileCHMOD, 'OwnerID': OwnerID, 'GroupID': GroupID, 'FileSize': FileSize, 'LastEdit': LastEdit, 'Checksum': Checksum, 'FileType': FileType, 'LinkedFile': LinkedFile, 'FileContent': FileContent}});
+       FileArray.update({i: {'FileName': FileName, 'RealFileName': RealFileName, 'FileDirectory': FileDirectory, 'RealFileDirectory': RealFileDirectory, 'FileMode': FileMode, 'FileCHMOD': FileCHMOD, 'OwnerID': OwnerID, 'GroupID': GroupID, 'FileSize': FileSize, 'LastEdit': LastEdit, 'Checksum': Checksum, 'FileType': FileType, 'LinkedFile': LinkedFile, 'FileContent': FileContent}});
       if(TarType=="ustar"):
-       FileArray.update({i: {'FileName': FileName, 'RealFileName': RealFileName, 'FileMode': FileMode, 'FileCHMOD': FileCHMOD, 'OwnerID': OwnerID, 'GroupID': GroupID, 'FileSize': FileSize, 'LastEdit': LastEdit, 'Checksum': Checksum, 'FileType': FileType, 'LinkedFile': LinkedFile, 'UStar': UStar, 'UStarVer': UStarVer, 'OwnerName': OwnerName, 'GroupName': GroupName, 'DeviceMajor': DeviceMajor, 'DeviceMinor': DeviceMinor, 'FilenamePrefix': FilenamePrefix, 'FileContent': FileContent}});
+       FileArray.update({i: {'FileName': FileName, 'RealFileName': RealFileName, 'FileDirectory': FileDirectory, 'RealFileDirectory': RealFileDirectory, 'FileMode': FileMode, 'FileCHMOD': FileCHMOD, 'OwnerID': OwnerID, 'GroupID': GroupID, 'FileSize': FileSize, 'LastEdit': LastEdit, 'Checksum': Checksum, 'FileType': FileType, 'LinkedFile': LinkedFile, 'UStar': UStar, 'UStarVer': UStarVer, 'OwnerName': OwnerName, 'GroupName': GroupName, 'DeviceMajor': DeviceMajor, 'DeviceMinor': DeviceMinor, 'FilenamePrefix': FilenamePrefix, 'FileContent': FileContent}});
   if(extract is False and findfile is None and (i in FileArray and 'FileName' in FileArray[i]) and Checksum!=0):
    i += 1;
   if(extract is False):
-   if(findfile is not None and re.search("/"+qfindfile+"/", FileName) and (i in FileArray and 'FileName' in FileArray[i]) and Checksum!=0):
+   if(findfile is not None and re.search("/"+qfindfile+"/", RealFileName) and (i in FileArray and 'FileName' in FileArray[i]) and Checksum!=0):
     i += 1;
   if(extract is True):
-   if(findfile is not None and re.search("/"+qfindfile+"/", FileName) and Checksum!=0):
+   if(findfile is not None and re.search("/"+qfindfile+"/", RealFileName) and Checksum!=0):
     i += 1;
   if((FileType=="0" or FileType=="7" or FileType=="g") and FileSize>0):
    CheckSize = 512;
