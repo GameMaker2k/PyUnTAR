@@ -178,6 +178,7 @@ def untar(tarfile, outdir="./", chmod=None, extract=True, lsonly=False, compress
  thandle.seek(-263, 1);
  while(thandle.tell()<TarSizeEnd):
   FileName = None;
+  RealFileName = None;
   FileMode = None;
   OwnerID = None;
   GroupID = None;
@@ -195,7 +196,8 @@ def untar(tarfile, outdir="./", chmod=None, extract=True, lsonly=False, compress
    DeviceMajor = None;
    DeviceMinor = None;
    FilenamePrefix = None;
-  FileName = str(outdir)+strip_text_from_file(thandle, 100);
+  RealFileName = strip_text_from_file(thandle, 100);
+  FileName = str(outdir)+RealFileName;
   thandle.seek(56, 1);
   FileType = strip_text_from_file(thandle, 1);
   thandle.seek(-57, 1);
@@ -237,6 +239,7 @@ def untar(tarfile, outdir="./", chmod=None, extract=True, lsonly=False, compress
     thandle.seek(12, 1);
    if(FileType=="L" and FileSize>0):
     FileName = strip_text_from_file(thandle, FileSize);
+    RealFileName = strip_text_from_file(thandle, RealFileSize);
     thandle.seek(512-FileSize, 1);
     thandle.seek(100, 1);
     FileMode = strip_text_from_file(thandle, 8);
@@ -312,14 +315,14 @@ def untar(tarfile, outdir="./", chmod=None, extract=True, lsonly=False, compress
     if(extract is False):
      if(lsonly is True):
       if(TarType=="tar"):
-       FileArray.update({i: {'FileName': FileName, 'FileMode': FileMode, 'OwnerID': OwnerID, 'GroupID': GroupID, 'FileSize': FileSize, 'LastEdit': LastEdit, 'Checksum': Checksum, 'FileType': FileType, 'LinkedFile': LinkedFile}});
+       FileArray.update({i: {'FileName': FileName, 'RealFileName': RealFileName, 'FileMode': FileMode, 'FileCHMOD': FileCHMOD, 'OwnerID': OwnerID, 'GroupID': GroupID, 'FileSize': FileSize, 'LastEdit': LastEdit, 'Checksum': Checksum, 'FileType': FileType, 'LinkedFile': LinkedFile}});
       if(TarType=="ustar"):
-       FileArray.update({i: {'FileName': FileName, 'FileMode': FileMode, 'OwnerID': OwnerID, 'GroupID': GroupID, 'FileSize': FileSize, 'LastEdit': LastEdit, 'Checksum': Checksum, 'FileType': FileType, 'LinkedFile': LinkedFile, 'UStar': UStar, 'UStarVer': UStarVer, 'OwnerName': OwnerName, 'GroupName': GroupName, 'DeviceMajor': DeviceMajor, 'DeviceMinor': DeviceMinor, 'FilenamePrefix': FilenamePrefix}});
+       FileArray.update({i: {'FileName': FileName, 'RealFileName': RealFileName, 'FileMode': FileMode, 'FileCHMOD': FileCHMOD, 'OwnerID': OwnerID, 'GroupID': GroupID, 'FileSize': FileSize, 'LastEdit': LastEdit, 'Checksum': Checksum, 'FileType': FileType, 'LinkedFile': LinkedFile, 'UStar': UStar, 'UStarVer': UStarVer, 'OwnerName': OwnerName, 'GroupName': GroupName, 'DeviceMajor': DeviceMajor, 'DeviceMinor': DeviceMinor, 'FilenamePrefix': FilenamePrefix}});
      if(lsonly is False):
       if(TarType=="tar"):
-       FileArray.update({i: {'FileName': FileName, 'FileMode': FileMode, 'OwnerID': OwnerID, 'GroupID': GroupID, 'FileSize': FileSize, 'LastEdit': LastEdit, 'Checksum': Checksum, 'FileType': FileType, 'LinkedFile': LinkedFile, 'FileContent': FileContent}});
+       FileArray.update({i: {'FileName': FileName, 'RealFileName': RealFileName, 'FileMode': FileMode, 'FileCHMOD': FileCHMOD, 'OwnerID': OwnerID, 'GroupID': GroupID, 'FileSize': FileSize, 'LastEdit': LastEdit, 'Checksum': Checksum, 'FileType': FileType, 'LinkedFile': LinkedFile, 'FileContent': FileContent}});
       if(TarType=="ustar"):
-       FileArray.update({i: {'FileName': FileName, 'FileMode': FileMode, 'OwnerID': OwnerID, 'GroupID': GroupID, 'FileSize': FileSize, 'LastEdit': LastEdit, 'Checksum': Checksum, 'FileType': FileType, 'LinkedFile': LinkedFile, 'UStar': UStar, 'UStarVer': UStarVer, 'OwnerName': OwnerName, 'GroupName': GroupName, 'DeviceMajor': DeviceMajor, 'DeviceMinor': DeviceMinor, 'FilenamePrefix': FilenamePrefix, 'FileContent': FileContent}});
+       FileArray.update({i: {'FileName': FileName, 'RealFileName': RealFileName, 'FileMode': FileMode, 'FileCHMOD': FileCHMOD, 'OwnerID': OwnerID, 'GroupID': GroupID, 'FileSize': FileSize, 'LastEdit': LastEdit, 'Checksum': Checksum, 'FileType': FileType, 'LinkedFile': LinkedFile, 'UStar': UStar, 'UStarVer': UStarVer, 'OwnerName': OwnerName, 'GroupName': GroupName, 'DeviceMajor': DeviceMajor, 'DeviceMinor': DeviceMinor, 'FilenamePrefix': FilenamePrefix, 'FileContent': FileContent}});
   if(extract is False and findfile is None and (i in FileArray and 'FileName' in FileArray[i]) and Checksum!=0):
    i += 1;
   if(extract is False):
