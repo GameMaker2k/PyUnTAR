@@ -30,19 +30,19 @@ __project_url__ = "https://github.com/GameMaker2k/PyUnTAR";
 __version_info__ = (4, 10, 0, "RC 1", 1);
 __version_date_info__ = (2018, 1, 6, "RC 1", 1);
 __version_date__ = str(__version_date_info__[0])+"."+str(__version_date_info__[1]).zfill(2)+"."+str(__version_date_info__[2]).zfill(2);
-if(__version_info__[4]!=None):
+if(__version_info__[4] is not None):
  __version_date_plusrc__ = __version_date__+"-"+str(__version_date_info__[4]);
-if(__version_info__[4]==None):
+if(__version_info__[4] is None):
  __version_date_plusrc__ = __version_date__;
-if(__version_info__[3]!=None):
+if(__version_info__[3] is not None):
  __version__ = str(__version_info__[0])+"."+str(__version_info__[1])+"."+str(__version_info__[2])+" "+str(__version_info__[3]);
-if(__version_info__[3]==None):
+if(__version_info__[3] is None):
  __version__ = str(__version_info__[0])+"."+str(__version_info__[1])+"."+str(__version_info__[2]);
 
 if __name__ == '__main__':
  argparser = argparse.ArgumentParser(description="Extract tar files", conflict_handler="resolve", add_help=True);
  argparser.add_argument("-V", "--version", action="version", version=__program_name__+" "+__version__);
- argparser.add_argument("tarfile", help="tar file to extract");
+ argparser.add_argument("-f", "--tarfile", help="tar file to extract", required=True);
  argparser.add_argument("-v", "--verbose", action="store_true", help="print various debugging information");
  argparser.add_argument("-t", "--list", action="store_true", help="list files only");
  argparser.add_argument("-x", "--extract", action="store_true", help="extract files only");
@@ -75,11 +75,38 @@ def strip_number_from_file(fhandle, read, base=8):
   temp_num = "0";
  return int(temp_num, base);
 
-def check_if_in_is_empty(intval):
+def check_if_int_is_empty(intval):
  temp_num = intval;
  if(len(str(intval))==0):
   temp_num = "0";
- return temp_num;
+ return int(temp_num);
+
+def check_compression_support(compression=None):
+ if(compression is None):
+  return True;
+ if(compression=="gz"):
+  compression = "gzip";
+ if(compression=="bzip" or compression=="bz" or compression=="bz2"):
+  compression = "bzip2";
+ if(compression=="gzip"):
+  try:
+   import gzip;
+   return True;
+  except ImportError:
+   return False;
+ if(compression=="bzip2"):
+  try:
+   import bz2;
+   return True;
+  except ImportError:
+   return False;
+ if(compression=="lzma"):
+  try:
+   import lzma;
+   return True;
+  except ImportError:
+   return False;
+ return False;
 
 '''
 // Python PyUnTAR based on PHP iUnTAR Version 4.7
@@ -99,9 +126,11 @@ def untar(tarfile, outdir="./", chmod=None, extract=True, lsonly=False, compress
   lsonly = False;
  if(extract is True):
   lsonly = False;
- if(compression=="bzip"):
+ if(compression=="gz"):
+  compression = "gzip";
+ if(compression=="bzip" or compression=="bz" or compression=="bz2"):
   compression = "bzip2";
- if(compression is not None and compression!="gzip" and compression!="bzip2"):
+ if(compression is not None and compression!="gzip" and compression!="bzip2" and compression!="lzma"):
   compression = None;
  if(compression=="gzip"):
   try:
@@ -113,15 +142,22 @@ def untar(tarfile, outdir="./", chmod=None, extract=True, lsonly=False, compress
    import bz2;
   except ImportError:
    compression = None;
+ if(compression=="lzma"):
+  try:
+   import lzma;
+  except ImportError:
+   compression = None;
  if(extract is True):
   if(outdir!="" and not os.path.exists(outdir)):
    os.makedirs(outdir, int("0777", 8));
- if(compression==None):
+ if(compression is None):
   thandle = open(tarfile, "rb");
  if(compression=="gzip"):
   thandle = gzip.open(tarfile, "rb");
  if(compression=="bzip2"):
   thandle = bz2.BZ2File(tarfile, "rb");
+ if(compression=="lzma"):
+  thandle = lzma.open(tarfile, "rb");
  thandle.seek(0, 2);
  TarSize = thandle.tell();
  TarSizeEnd = TarSize;
@@ -241,7 +277,7 @@ def untar(tarfile, outdir="./", chmod=None, extract=True, lsonly=False, compress
     permissionstr = "s"+permissionstr;
    if(FileType=="5"):
     permissionstr = "d"+permissionstr;
-   log.info(permissionstr+" "+str(check_if_in_is_empty(OwnerID))+"/"+str(check_if_in_is_empty(GroupID))+" "+str(FileSize).rjust(15)+" "+datetime.datetime.utcfromtimestamp(check_if_in_is_empty(LastEdit)).strftime('%Y-%m-%d %H:%M')+" "+FileName);
+   log.info(permissionstr+" "+str(check_if_int_is_empty(OwnerID))+"/"+str(check_if_int_is_empty(GroupID))+" "+str(FileSize).rjust(15)+" "+datetime.datetime.utcfromtimestamp(check_if_int_is_empty(LastEdit)).strftime('%Y-%m-%d %H:%M')+" "+FileName);
   if((findfile is None or  re.search("/"+qfindfile+"/", FileName)) and Checksum!=0):
    if(FileType=="0" or FileType=="7" or FileType=="g"):
     if(lsonly is True):
