@@ -272,7 +272,10 @@ def untar(tarfile, outdir="./", chmod=None, extract=True, lsonly=False, compress
      FilenamePrefix = strip_text_from_file(thandle, 155);
      thandle.seek(12, 1);
   if(((verbose is True and extract is True) or (verbose is False and lsonly is True)) and Checksum!=0):
-   log.info(RealFileName);
+   if(verbose is True and extract is True):
+    log.info(FileName);
+   if(verbose is False and lsonly is True):
+    log.info(RealFileName);
   if(verbose is True and lsonly is True and Checksum!=0):
    permissions = { 'access': { '0': ('---'), '1': ('--x'), '2': ('-w-'), '3': ('-wx'), '4': ('r--'), '5': ('r-x'), '6': ('rw-'), '7': ('rwx') }, 'roles': { 0: 'owner', 1: 'group', 2: 'other' } };
    permissionstr = "";
