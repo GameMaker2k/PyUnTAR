@@ -100,7 +100,7 @@ def check_compression_support(compression=None):
    return True;
   except ImportError:
    return False;
- if(compression=="lzma"):
+ if(compression=="lzma" or compression=="xz"):
   try:
    import lzma;
    return True;
@@ -130,7 +130,7 @@ def untar(tarfile, outdir="./", chmod=None, extract=True, lsonly=False, compress
   compression = "gzip";
  if(compression=="bzip" or compression=="bz" or compression=="bz2"):
   compression = "bzip2";
- if(compression is not None and compression!="gzip" and compression!="bzip2" and compression!="lzma"):
+ if(compression is not None and compression!="gzip" and compression!="bzip2" and compression!="lzma" and compression!="xz"):
   compression = None;
  if(compression=="gzip"):
   try:
@@ -142,7 +142,7 @@ def untar(tarfile, outdir="./", chmod=None, extract=True, lsonly=False, compress
    import bz2;
   except ImportError:
    compression = None;
- if(compression=="lzma"):
+ if(compression=="lzma" or compression=="xz"):
   try:
    import lzma;
   except ImportError:
