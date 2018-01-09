@@ -46,7 +46,7 @@ if __name__ == '__main__':
  argparser.add_argument("-v", "--verbose", action="store_true", help="print various debugging information");
  argparser.add_argument("-t", "--list", action="store_true", help="list files only");
  argparser.add_argument("-x", "--extract", action="store_true", help="extract files only");
- argparser.add_argument("-d", "--decompress", default=None, help="decompress file with gzip or bzip2");
+ argparser.add_argument("-d", "--decompress", default=None, help="decompress file with gzip, bzip2, lzma, or xz");
  argparser.add_argument("-o", "--outputdir", default="./", help="output tar file to dir");
  argparser.add_argument("-c", "--chmod", default=None, help="set chmod vaule for files");
  getargs = argparser.parse_args();
