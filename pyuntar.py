@@ -280,7 +280,10 @@ def untar(tarfile, outdir="./", chmod=None, extract=True, lsonly=False, compress
    permissions = { 'access': { '0': ('---'), '1': ('--x'), '2': ('-w-'), '3': ('-wx'), '4': ('r--'), '5': ('r-x'), '6': ('rw-'), '7': ('rwx') }, 'roles': { 0: 'owner', 1: 'group', 2: 'other' } };
    permissionstr = "";
    for fmodval in str(FileMode[-3:]):
-    permissionstr =  permissions['access'][fmodval] + permissionstr;
+    try:
+     permissionstr = permissionstr + permissions['access'][fmodval];
+    except KeyError:
+     permissionstr = permissionstr + "---";
    if(FileType=="0" or FileType=="7" or FileType=="g"):
     permissionstr = "-"+permissionstr;
    if(FileType=="1"):
