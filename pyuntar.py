@@ -15,7 +15,7 @@
     Copyright 2018 Kazuki Przyborowski - https://github.com/KazukiPrzyborowski
     PyUnTar based on iUnTar ver. 4.7 by Kazuki Przyborowski & Josep Sanz Campderros
 
-    $FileInfo: pyuntar.py - Last Update: 1/9/2018 Ver. 4.10.0 RC 1 - Author: cooldude2k $
+    $FileInfo: pyuntar.py - Last Update: 1/9/2018 Ver. 4.12.0 RC 1 - Author: cooldude2k $
 '''
 
 import os
@@ -30,8 +30,8 @@ if __name__ == '__main__':
 __program_name__ = "PyUnTAR"
 __project__ = __program_name__
 __project_url__ = "https://github.com/GameMaker2k/PyUnTAR"
-__version_info__ = (4, 10, 0, "RC 1", 1)
-__version_date_info__ = (2018, 1, 6, "RC 1", 1)
+__version_info__ = (4, 12, 0, "RC 1", 1)
+__version_date_info__ = (2024, 10, 22, "RC 1", 1)
 __version_date__ = str(__version_date_info__[0])+"."+str(__version_date_info__[
     1]).zfill(2)+"."+str(__version_date_info__[2]).zfill(2)
 if(__version_info__[4] is not None):
